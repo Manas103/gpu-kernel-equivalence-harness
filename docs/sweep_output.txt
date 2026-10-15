@@ -1,0 +1,19 @@
+GPU: NVIDIA GeForce RTX 4070 SUPER
+torch: 2.11.0+cu128, CUDA: 12.8
+sweep grid: 80 shapes x 3 dtypes x 10 repeats = 2400 runs
+
+total runs: 2400
+elapsed: 9.4s
+false failures (verdict or output changed on an identical repeat): 0
+divergent (shape, dtype, impl) configurations: 0
+
+
+adversarial probe (cancellation-structured data, not part of the 2,400-run sweep):
+adversarial divergences found: 6
+ADVERSARIAL DIVERGENCE impl=cuda dtype=tf32 original_shape=(64,64,128) max_abs_diff=4 -> minimal_failing_shape=(64,64,2) monotonic_in_k=True
+ADVERSARIAL DIVERGENCE impl=triton dtype=tf32 original_shape=(64,64,128) max_abs_diff=4 -> minimal_failing_shape=(64,64,2) monotonic_in_k=True
+ADVERSARIAL DIVERGENCE impl=cuda dtype=tf32 original_shape=(64,64,512) max_abs_diff=3 -> minimal_failing_shape=(64,64,2) monotonic_in_k=True
+ADVERSARIAL DIVERGENCE impl=triton dtype=tf32 original_shape=(64,64,512) max_abs_diff=3 -> minimal_failing_shape=(64,64,2) monotonic_in_k=True
+ADVERSARIAL DIVERGENCE impl=cuda dtype=tf32 original_shape=(64,64,4096) max_abs_diff=21.5 -> minimal_failing_shape=(64,64,2) monotonic_in_k=True
+ADVERSARIAL DIVERGENCE impl=triton dtype=tf32 original_shape=(64,64,4096) max_abs_diff=21.5 -> minimal_failing_shape=(64,64,2) monotonic_in_k=True
+SWEEP_EXIT=0

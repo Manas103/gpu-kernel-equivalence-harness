@@ -1,0 +1,37 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-9.1.1, pluggy-1.7.0 -- /mnt/c/Users/Manas/Downloads/Auto Job Applier/Total Job Application process flow/projects/gpu-kernel-equivalence-harness/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/Manas/Downloads/Auto Job Applier/Total Job Application process flow
+configfile: pytest.ini
+collecting ... collected 27 items
+
+tests/test_adversarial.py::test_tf32_diverges_on_cancellation_data PASSED [  3%]
+tests/test_adversarial.py::test_fp16_and_bf16_do_not_diverge_on_the_same_construction[fp16] PASSED [  7%]
+tests/test_adversarial.py::test_fp16_and_bf16_do_not_diverge_on_the_same_construction[bf16] PASSED [ 11%]
+tests/test_determinism.py::test_cuda_kernel_is_bit_deterministic[fp16] PASSED [ 14%]
+tests/test_determinism.py::test_cuda_kernel_is_bit_deterministic[bf16] PASSED [ 18%]
+tests/test_determinism.py::test_cuda_kernel_is_bit_deterministic[tf32] PASSED [ 22%]
+tests/test_determinism.py::test_triton_kernel_is_bit_deterministic[fp16] PASSED [ 25%]
+tests/test_determinism.py::test_triton_kernel_is_bit_deterministic[bf16] PASSED [ 29%]
+tests/test_determinism.py::test_triton_kernel_is_bit_deterministic[tf32] PASSED [ 33%]
+tests/test_harness_catches_injected_divergence.py::test_within_budget_flags_a_large_injected_error PASSED [ 37%]
+tests/test_harness_catches_injected_divergence.py::test_within_budget_accepts_a_sub_budget_nudge PASSED [ 40%]
+tests/test_oracle.py::test_cuda_kernel_matches_oracle[shape0-fp16] PASSED [ 44%]
+tests/test_oracle.py::test_cuda_kernel_matches_oracle[shape0-bf16] PASSED [ 48%]
+tests/test_oracle.py::test_cuda_kernel_matches_oracle[shape0-tf32] PASSED [ 51%]
+tests/test_oracle.py::test_cuda_kernel_matches_oracle[shape1-fp16] PASSED [ 55%]
+tests/test_oracle.py::test_cuda_kernel_matches_oracle[shape1-bf16] PASSED [ 59%]
+tests/test_oracle.py::test_cuda_kernel_matches_oracle[shape1-tf32] PASSED [ 62%]
+tests/test_oracle.py::test_triton_kernel_matches_oracle[shape0-fp16] PASSED [ 66%]
+tests/test_oracle.py::test_triton_kernel_matches_oracle[shape0-bf16] PASSED [ 70%]
+tests/test_oracle.py::test_triton_kernel_matches_oracle[shape0-tf32] PASSED [ 74%]
+tests/test_oracle.py::test_triton_kernel_matches_oracle[shape1-fp16] PASSED [ 77%]
+tests/test_oracle.py::test_triton_kernel_matches_oracle[shape1-bf16] PASSED [ 81%]
+tests/test_oracle.py::test_triton_kernel_matches_oracle[shape1-tf32] PASSED [ 85%]
+tests/test_tolerance.py::test_tf32_and_fp16_share_the_same_unit_roundoff PASSED [ 88%]
+tests/test_tolerance.py::test_bf16_has_a_looser_unit_roundoff_than_fp16 PASSED [ 92%]
+tests/test_tolerance.py::test_budget_grows_linearly_with_k PASSED        [ 96%]
+tests/test_tolerance.py::test_budget_never_negative_or_zero_for_k_equals_one PASSED [100%]
+
+============================= 27 passed in 21.76s ==============================
+PYTEST_EXIT=0
