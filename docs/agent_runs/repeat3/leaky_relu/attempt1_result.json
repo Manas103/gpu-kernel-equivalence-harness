@@ -1,0 +1,26 @@
+{
+  "task": "leaky_relu",
+  "dtype": "bf16",
+  "status": "pass",
+  "max_abs_diff": 2.9296874999999375e-05,
+  "tolerance_eps": 0.01957559135988731,
+  "elapsed_candidate_s": 0.00011539199948310852,
+  "elapsed_eager_s": 5.923200026154518e-05,
+  "speedup_over_eager": 0.5133111526524485,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 9.1,
+    "memory_pct_of_peak": 1.8,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 20,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 25,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

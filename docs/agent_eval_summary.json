@@ -1,0 +1,27 @@
+{
+  "repeats": [
+    {
+      "repeat": 1,
+      "passed": 24,
+      "total": 24,
+      "median_speedup_over_eager": 0.6488408517921336
+    },
+    {
+      "repeat": 2,
+      "passed": 24,
+      "total": 24,
+      "median_speedup_over_eager": 1.2547618946426595
+    },
+    {
+      "repeat": 3,
+      "passed": 24,
+      "total": 24,
+      "median_speedup_over_eager": 0.6465097749659612
+    }
+  ],
+  "pass_count_band": [
+    24,
+    24,
+    24
+  ]
+}

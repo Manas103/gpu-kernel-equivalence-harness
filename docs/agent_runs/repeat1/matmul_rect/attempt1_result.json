@@ -1,0 +1,27 @@
+{
+  "task": "matmul_rect",
+  "dtype": "bf16",
+  "status": "pass",
+  "max_abs_diff": 0.06123088300228119,
+  "tolerance_eps": 21.141424004616454,
+  "elapsed_candidate_s": 0.00012777599692344666,
+  "elapsed_eager_s": 4.428799822926521e-05,
+  "speedup_over_eager": 0.3466065559699691,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 3.5,
+    "memory_pct_of_peak": 0.7,
+    "compute_pct_of_peak": 0.4,
+    "achieved_tflops": 0.3
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 86,
+      "shared_bytes": 16384,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 5,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 6,
+      "theoretical_occupancy_pct": 41.7
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def tanh_bf16_kernel(x_ptr, out_ptr, n_elements, BLOCK_SIZE: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    offs = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+    mask = offs < n_elements
+
+    x = tl.load(x_ptr + offs, mask=mask, other=0.0).to(tl.float32)
+    ax = tl.abs(x)
+
+    # Large/medium |x|: tanh(|x|) = 1 - 2 / (exp(2|x|) + 1).
+    # exp overflow to inf yields 2/inf = 0, so the result saturates to 1 cleanly.
+    e2 = tl.exp(2.0 * ax)
+    t_exp = 1.0 - 2.0 / (e2 + 1.0)
+
+    # Small |x|: odd Taylor series avoids catastrophic cancellation near zero.
+    # tanh(x) = x - x^3/3 + 2x^5/15 - 17x^7/315 + O(x^9), error < 1e-6 relative for |x| < 0.25.
+    x2 = ax * ax
+    t_series = ax * (1.0 - x2 * (1.0 / 3.0 - x2 * (2.0 / 15.0 - x2 * (17.0 / 315.0))))
+
+    t = tl.where(ax < 0.25, t_series, t_exp)
+    y = tl.where(x < 0.0, -t, t)
+
+    tl.store(out_ptr + offs, y.to(out_ptr.dtype.element_ty), mask=mask)
+
+
+TRITON_KERNELS = [tanh_bf16_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0]
+    x = a.contiguous()
+    out = torch.empty_like(x)
+    n_elements = x.numel()
+    BLOCK_SIZE = 1024
+    grid = (triton.cdiv(n_elements, BLOCK_SIZE),)
+    tanh_bf16_kernel[grid](x, out, n_elements, BLOCK_SIZE=BLOCK_SIZE)
+    return out
+```

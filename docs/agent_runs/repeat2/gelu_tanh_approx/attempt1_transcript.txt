@@ -1,0 +1,35 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def gelu_tanh_kernel(x_ptr, out_ptr, n_elements, BLOCK: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    offs = pid * BLOCK + tl.arange(0, BLOCK)
+    mask = offs < n_elements
+
+    a = tl.load(x_ptr + offs, mask=mask, other=0.0).to(tl.float32)
+
+    # tanh(u) = 1 - 2 / (exp(2u) + 1); saturates cleanly for large |u|
+    u = 0.7978845608 * (a + 0.044715 * a * a * a)
+    e = tl.exp(2.0 * u)
+    t = 1.0 - 2.0 / (e + 1.0)
+
+    y = 0.5 * a * (1.0 + t)
+    tl.store(out_ptr + offs, y.to(tl.float16), mask=mask)
+
+
+TRITON_KERNELS = [gelu_tanh_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    x = tensors[0]
+    out = torch.empty(x.shape, dtype=x.dtype, device=x.device)
+    n = x.numel()
+    BLOCK = 1024
+    grid = (triton.cdiv(n, BLOCK),)
+    gelu_tanh_kernel[grid](x, out, n, BLOCK=BLOCK)
+    return out
+```

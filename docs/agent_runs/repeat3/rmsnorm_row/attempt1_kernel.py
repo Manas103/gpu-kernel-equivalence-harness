@@ -1,0 +1,49 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _rmsnorm_row_kernel(
+    x_ptr,
+    out_ptr,
+    stride_xm,
+    stride_om,
+    N,
+    eps,
+    BLOCK_N: tl.constexpr,
+):
+    row = tl.program_id(0)
+    cols = tl.arange(0, BLOCK_N)
+    mask = cols < N
+
+    x = tl.load(x_ptr + row * stride_xm + cols, mask=mask, other=0.0).to(tl.float32)
+    sum_sq = tl.sum(x * x, axis=0)
+    inv_rms = 1.0 / tl.sqrt(sum_sq / N + eps)
+    y = x * inv_rms
+
+    tl.store(out_ptr + row * stride_om + cols, y.to(tl.float16), mask=mask)
+
+
+TRITON_KERNELS = [_rmsnorm_row_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0]
+    if a.stride(1) != 1:
+        a = a.contiguous()
+    M, N = a.shape
+    out = torch.empty((M, N), device=a.device, dtype=a.dtype)
+    BLOCK_N = triton.next_power_of_2(N)
+    grid = (M,)
+    _rmsnorm_row_kernel[grid](
+        a,
+        out,
+        a.stride(0),
+        out.stride(0),
+        N,
+        1e-5,
+        BLOCK_N=BLOCK_N,
+        num_warps=4,
+    )
+    return out

@@ -1,0 +1,30 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _fma_bf16_kernel(a_ptr, b_ptr, c_ptr, out_ptr, n_elements, BLOCK: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    offsets = pid * BLOCK + tl.arange(0, BLOCK)
+    mask = offsets < n_elements
+    a = tl.load(a_ptr + offsets, mask=mask, other=0.0).to(tl.float32)
+    b = tl.load(b_ptr + offsets, mask=mask, other=0.0).to(tl.float32)
+    c = tl.load(c_ptr + offsets, mask=mask, other=0.0).to(tl.float32)
+    d = a * b + c
+    tl.store(out_ptr + offsets, d.to(tl.bfloat16), mask=mask)
+
+
+TRITON_KERNELS = [_fma_bf16_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a, b, c = tensors
+    out = torch.empty_like(a)
+    n = a.numel()
+    BLOCK = 1024
+    grid = (triton.cdiv(n, BLOCK),)
+    _fma_bf16_kernel[grid](a, b, c, out, n, BLOCK=BLOCK)
+    return out
+```

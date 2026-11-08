@@ -1,0 +1,55 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _l2_normalize_row_kernel(
+    x_ptr,
+    y_ptr,
+    N,
+    stride_xm,
+    stride_xn,
+    stride_ym,
+    stride_yn,
+    BLOCK_N: tl.constexpr,
+):
+    row = tl.program_id(0)
+    cols = tl.arange(0, BLOCK_N)
+    mask = cols < N
+
+    x = tl.load(x_ptr + row * stride_xm + cols * stride_xn, mask=mask, other=0.0).to(tl.float32)
+    sumsq = tl.sum(x * x, axis=0)
+    inv_norm = 1.0 / tl.sqrt(sumsq)
+    y = x * inv_norm
+
+    tl.store(
+        y_ptr + row * stride_ym + cols * stride_yn,
+        y.to(y_ptr.dtype.element_ty),
+        mask=mask,
+    )
+
+
+TRITON_KERNELS = [_l2_normalize_row_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0]
+    x = a if a.is_contiguous() else a.contiguous()
+    M, N = x.shape
+    y = torch.empty((M, N), dtype=a.dtype, device=a.device)
+    BLOCK_N = triton.next_power_of_2(N)
+    _l2_normalize_row_kernel[(M,)](
+        x,
+        y,
+        N,
+        x.stride(0),
+        x.stride(1),
+        y.stride(0),
+        y.stride(1),
+        BLOCK_N=BLOCK_N,
+        num_warps=4,
+    )
+    return y
+```

@@ -1,0 +1,58 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _l2_normalize_row_kernel(
+    x_ptr,
+    y_ptr,
+    N,
+    stride_xm,
+    stride_ym,
+    BLOCK: tl.constexpr,
+):
+    row = tl.program_id(0)
+    x_row = x_ptr + row * stride_xm
+    y_row = y_ptr + row * stride_ym
+
+    # Pass 1: fp32 sum of squares over the row, chunked by BLOCK.
+    acc = tl.zeros([BLOCK], dtype=tl.float32)
+    for start in range(0, N, BLOCK):
+        offs = start + tl.arange(0, BLOCK)
+        mask = offs < N
+        x = tl.load(x_row + offs, mask=mask, other=0.0).to(tl.float32)
+        acc += x * x
+    ss = tl.sum(acc, axis=0)
+    norm = tl.sqrt(ss)
+
+    # Pass 2: scale each element by 1 / ||row||_2 and store in the input dtype.
+    for start in range(0, N, BLOCK):
+        offs = start + tl.arange(0, BLOCK)
+        mask = offs < N
+        x = tl.load(x_row + offs, mask=mask, other=0.0).to(tl.float32)
+        y = x / norm
+        tl.store(y_row + offs, y.to(y_ptr.dtype.element_ty), mask=mask)
+
+
+TRITON_KERNELS = [_l2_normalize_row_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0].contiguous()
+    M, N = a.shape
+    y = torch.empty_like(a)
+    BLOCK = min(triton.next_power_of_2(N), 1024)
+    grid = (M,)
+    _l2_normalize_row_kernel[grid](
+        a,
+        y,
+        N,
+        a.stride(0),
+        y.stride(0),
+        BLOCK=BLOCK,
+        num_warps=4,
+    )
+    return y
+```

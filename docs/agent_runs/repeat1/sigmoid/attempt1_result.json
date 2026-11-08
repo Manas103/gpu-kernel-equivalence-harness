@@ -1,0 +1,26 @@
+{
+  "task": "sigmoid",
+  "dtype": "fp16",
+  "status": "pass",
+  "max_abs_diff": 0.0002440979982766267,
+  "tolerance_eps": 0.002929143031158236,
+  "elapsed_candidate_s": 2.6528000831604002e-05,
+  "elapsed_eager_s": 1.1392000131309032e-05,
+  "speedup_over_eager": 0.4294330433576144,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 39.5,
+    "memory_pct_of_peak": 7.8,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 21,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 24,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

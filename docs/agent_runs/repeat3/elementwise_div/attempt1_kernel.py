@@ -1,0 +1,28 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _elementwise_div_kernel(a_ptr, b_ptr, c_ptr, n_elements, BLOCK_SIZE: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+    mask = offsets < n_elements
+    a = tl.load(a_ptr + offsets, mask=mask, other=0.0).to(tl.float32)
+    b = tl.load(b_ptr + offsets, mask=mask, other=0.0).to(tl.float32)
+    denom = tl.abs(b) + 0.5
+    c = a / denom
+    tl.store(c_ptr + offsets, c.to(c_ptr.dtype.element_ty), mask=mask)
+
+
+TRITON_KERNELS = [_elementwise_div_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a, b = tensors[0], tensors[1]
+    c = torch.empty_like(a)
+    n = a.numel()
+    BLOCK_SIZE = 1024
+    grid = (triton.cdiv(n, BLOCK_SIZE),)
+    _elementwise_div_kernel[grid](a, b, c, n, BLOCK_SIZE=BLOCK_SIZE)
+    return c

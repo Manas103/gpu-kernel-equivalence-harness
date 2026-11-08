@@ -1,0 +1,31 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def relu_kernel(x_ptr, out_ptr, n_elements, BLOCK_SIZE: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+    mask = offsets < n_elements
+    x = tl.load(x_ptr + offsets, mask=mask, other=0.0)
+    x32 = x.to(tl.float32)
+    # Positive values pass through, others clamp to zero, NaN propagates as in torch.relu.
+    y = tl.where(x32 > 0.0, x32, 0.0)
+    y = tl.where(x32 != x32, x32, y)
+    tl.store(out_ptr + offsets, y.to(x.dtype), mask=mask)
+
+
+TRITON_KERNELS = [relu_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    x = tensors[0]
+    out = torch.empty_like(x)
+    n = x.numel()
+    BLOCK_SIZE = 1024
+    grid = (triton.cdiv(n, BLOCK_SIZE),)
+    relu_kernel[grid](x, out, n, BLOCK_SIZE=BLOCK_SIZE)
+    return out
+```

@@ -1,0 +1,26 @@
+{
+  "task": "vector_mul",
+  "dtype": "bf16",
+  "status": "pass",
+  "max_abs_diff": 0.001953125,
+  "tolerance_eps": 0.01954233533757449,
+  "elapsed_candidate_s": 3.07839997112751e-05,
+  "elapsed_eager_s": 1.1264000087976456e-05,
+  "speedup_over_eager": 0.365904372194067,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 51.1,
+    "memory_pct_of_peak": 10.1,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 18,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 28,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

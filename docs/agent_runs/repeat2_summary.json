@@ -1,0 +1,874 @@
+{
+  "repeat": 2,
+  "passed": 24,
+  "total": 24,
+  "median_speedup_over_eager": 1.2547618946426595,
+  "episodes": [
+    {
+      "task": "vector_add",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "vector_add",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.00048828125,
+          "tolerance_eps": 0.0032600519601020395,
+          "elapsed_candidate_s": 2.848000079393387e-05,
+          "elapsed_eager_s": 9.286399930715562e-05,
+          "speedup_over_eager": 3.260674042078513,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 55.2,
+            "memory_pct_of_peak": 11.0,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 18,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 28,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "vector_mul",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "vector_mul",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.001953125,
+          "tolerance_eps": 0.01954233533757449,
+          "elapsed_candidate_s": 3.07839997112751e-05,
+          "elapsed_eager_s": 1.1264000087976456e-05,
+          "speedup_over_eager": 0.365904372194067,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 51.1,
+            "memory_pct_of_peak": 10.1,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 18,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 28,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "elementwise_sub",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "elementwise_sub",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.00048828125,
+          "tolerance_eps": 0.003253718574792508,
+          "elapsed_candidate_s": 2.5599999353289605e-05,
+          "elapsed_eager_s": 1.7632000148296357e-05,
+          "speedup_over_eager": 0.6887500231921154,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 61.4,
+            "memory_pct_of_peak": 12.2,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 18,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 28,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "elementwise_div",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "elementwise_div",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.0039053258812395963,
+          "tolerance_eps": 0.02421767361975699,
+          "elapsed_candidate_s": 2.8704000636935235e-05,
+          "elapsed_eager_s": 3.5487998276948926e-05,
+          "speedup_over_eager": 1.2363432793157165,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 54.8,
+            "memory_pct_of_peak": 10.9,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 24,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 21,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "relu",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "relu",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0,
+          "tolerance_eps": 0.0024420496170707295,
+          "elapsed_candidate_s": 2.7775999158620835e-05,
+          "elapsed_eager_s": 9.216000139713287e-05,
+          "speedup_over_eager": 3.317972501037075,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 37.8,
+            "memory_pct_of_peak": 7.5,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 16,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 32,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "leaky_relu",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "leaky_relu",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 2.9296874999999375e-05,
+          "tolerance_eps": 0.01957559135988731,
+          "elapsed_candidate_s": 4.5056000351905825e-05,
+          "elapsed_eager_s": 9.216000325977802e-06,
+          "speedup_over_eager": 0.20454546018281833,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 23.3,
+            "memory_pct_of_peak": 4.6,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 20,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 25,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "sigmoid",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "sigmoid",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0002440979982766267,
+          "tolerance_eps": 0.002929143031158236,
+          "elapsed_candidate_s": 0.00012403199821710588,
+          "elapsed_eager_s": 9.216000139713287e-05,
+          "speedup_over_eager": 0.743034077672568,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 8.5,
+            "memory_pct_of_peak": 1.7,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 21,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 24,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "tanh_act",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "tanh_act",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.0019368790242345613,
+          "tolerance_eps": 0.027672829295776295,
+          "elapsed_candidate_s": 3.58400009572506e-05,
+          "elapsed_eager_s": 1.142400037497282e-05,
+          "speedup_over_eager": 0.3187500019489171,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 29.3,
+            "memory_pct_of_peak": 5.8,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 28,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 18,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "gelu_tanh_approx",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "gelu_tanh_approx",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0009728550794019242,
+          "tolerance_eps": 0.003419819274016543,
+          "elapsed_candidate_s": 4.3935999274253844e-05,
+          "elapsed_eager_s": 0.00045977601408958433,
+          "speedup_over_eager": 10.464676385749339,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 23.9,
+            "memory_pct_of_peak": 4.7,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 27,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 18,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "softplus",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "softplus",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.01310007208219055,
+          "tolerance_eps": 0.034399331493419893,
+          "elapsed_candidate_s": 3.731200098991394e-05,
+          "elapsed_eager_s": 0.0002938880026340485,
+          "speedup_over_eager": 7.876500719258969,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 28.1,
+            "memory_pct_of_peak": 5.6,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 40,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 12,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "clamp",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "clamp",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0,
+          "tolerance_eps": 0.003583583224749276,
+          "elapsed_candidate_s": 9.216000325977802e-06,
+          "elapsed_eager_s": 4.0959999896585945e-06,
+          "speedup_over_eager": 0.44444442760195063,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 113.8,
+            "memory_pct_of_peak": 22.6,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 18,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 28,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "elementwise_fma",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "elementwise_fma",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.00390625,
+          "tolerance_eps": 0.024312798622604062,
+          "elapsed_candidate_s": 4.160000011324882e-06,
+          "elapsed_eager_s": 7.135999854654073e-06,
+          "speedup_over_eager": 1.7153845757758521,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 504.1,
+            "memory_pct_of_peak": 100.0,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 31,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 16,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "sqrt_positive",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "sqrt_positive",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0004882216307988685,
+          "tolerance_eps": 0.004563000746429409,
+          "elapsed_candidate_s": 3.5999998450279234e-05,
+          "elapsed_eager_s": 1.535999961197376e-05,
+          "speedup_over_eager": 0.4266666742552213,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 29.1,
+            "memory_pct_of_peak": 5.8,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 20,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 25,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "exp_elementwise",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "exp_elementwise",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.015571754285359951,
+          "tolerance_eps": 0.043982208764338386,
+          "elapsed_candidate_s": 3.903999924659729e-05,
+          "elapsed_eager_s": 3.9360001683235165e-06,
+          "speedup_over_eager": 0.10081967838835389,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 26.9,
+            "memory_pct_of_peak": 5.3,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 17,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 30,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "log_elementwise",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "log_elementwise",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0019493021528615984,
+          "tolerance_eps": 0.003658738301900095,
+          "elapsed_candidate_s": 3.587200120091438e-05,
+          "elapsed_eager_s": 4.0959999896585945e-06,
+          "speedup_over_eager": 0.11418376038508236,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 29.2,
+            "memory_pct_of_peak": 5.8,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 28,
+              "shared_bytes": 0,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 18,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 1000000000,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "cumsum_row",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "cumsum_row",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.12497329711914062,
+          "tolerance_eps": 176.9827420613292,
+          "elapsed_candidate_s": 3.5967998206615446e-05,
+          "elapsed_eager_s": 3.2767999917268756e-05,
+          "speedup_over_eager": 0.9110320715941838,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 58.3,
+            "memory_pct_of_peak": 11.6,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 40,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 12,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "row_sum",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "row_sum",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.015110015869140625,
+          "tolerance_eps": 32.3122344436124,
+          "elapsed_candidate_s": 0.00011667200177907943,
+          "elapsed_eager_s": 0.00021091200411319733,
+          "speedup_over_eager": 1.8077345112545773,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 9.0,
+            "memory_pct_of_peak": 1.8,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 40,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 12,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "row_max",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "row_max",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.0,
+          "tolerance_eps": 31.9749755859375,
+          "elapsed_candidate_s": 2.9632000252604483e-05,
+          "elapsed_eager_s": 3.577600046992302e-05,
+          "speedup_over_eager": 1.2073434180933673,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 35.4,
+            "memory_pct_of_peak": 7.0,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 37,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 13,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "softmax_row",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "softmax_row",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 1.9059516489505768e-06,
+          "tolerance_eps": 2.0019531249919704,
+          "elapsed_candidate_s": 0.00014483200013637543,
+          "elapsed_eager_s": 0.00020496000349521637,
+          "speedup_over_eager": 1.415156894210007,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 14.5,
+            "memory_pct_of_peak": 2.9,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 23,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 22,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "layernorm_row",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "layernorm_row",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.0039061307907104492,
+          "tolerance_eps": 29.863325471916273,
+          "elapsed_candidate_s": 4.0320001542568204e-05,
+          "elapsed_eager_s": 5.0592001527547836e-05,
+          "speedup_over_eager": 1.2547618946426595,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 52.0,
+            "memory_pct_of_peak": 10.3,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 25,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 20,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "rmsnorm_row",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "rmsnorm_row",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0004884004592895508,
+          "tolerance_eps": 3.7332835503834363,
+          "elapsed_candidate_s": 0.0001276479959487915,
+          "elapsed_eager_s": 0.0004220159947872162,
+          "speedup_over_eager": 3.3060918164082747,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 16.4,
+            "memory_pct_of_peak": 3.3,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 22,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 23,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "l2_normalize_row",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "l2_normalize_row",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.00012207403779029846,
+          "tolerance_eps": 16.43332172751479,
+          "elapsed_candidate_s": 2.457600086927414e-05,
+          "elapsed_eager_s": 7.686399668455124e-05,
+          "speedup_over_eager": 3.127603921134686,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 85.3,
+            "memory_pct_of_peak": 16.9,
+            "compute_pct_of_peak": null
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 40,
+              "shared_bytes": 16,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 12,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6400,
+              "theoretical_occupancy_pct": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "matmul_small",
+      "dtype": "fp16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "matmul_small",
+          "dtype": "fp16",
+          "status": "pass",
+          "max_abs_diff": 0.0038902796804904938,
+          "tolerance_eps": 1.0007970290021535,
+          "elapsed_candidate_s": 3.0432000756263734e-05,
+          "elapsed_eager_s": 0.00010400000214576721,
+          "speedup_over_eager": 3.4174552957830477,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 3.2,
+            "memory_pct_of_peak": 0.6,
+            "compute_pct_of_peak": 0.2,
+            "achieved_tflops": 0.14
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 86,
+              "shared_bytes": 16384,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 5,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6,
+              "theoretical_occupancy_pct": 41.7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "matmul_rect",
+      "dtype": "bf16",
+      "repeat": 2,
+      "attempts_used": 1,
+      "final_status": "pass",
+      "attempts": [
+        {
+          "attempt": 1,
+          "task": "matmul_rect",
+          "dtype": "bf16",
+          "status": "pass",
+          "max_abs_diff": 0.06123088300228119,
+          "tolerance_eps": 21.141424004616454,
+          "elapsed_candidate_s": 2.768000029027462e-05,
+          "elapsed_eager_s": 0.00011398400366306306,
+          "speedup_over_eager": 4.117919164296808,
+          "speed_of_light_proxy": {
+            "achieved_gbps": 16.0,
+            "memory_pct_of_peak": 3.2,
+            "compute_pct_of_peak": 1.9,
+            "achieved_tflops": 1.36
+          },
+          "occupancy_proxy": [
+            {
+              "n_regs": 86,
+              "shared_bytes": 16384,
+              "num_warps": 4,
+              "blocks_limited_by_registers": 5,
+              "blocks_limited_by_threads": 12,
+              "blocks_limited_by_shared_mem": 6,
+              "theoretical_occupancy_pct": 41.7
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

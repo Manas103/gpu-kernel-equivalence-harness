@@ -1,0 +1,48 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _gelu_tanh_approx_kernel(
+    x_ptr,
+    out_ptr,
+    n_elements,
+    BLOCK_SIZE: tl.constexpr,
+):
+    pid = tl.program_id(axis=0)
+    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+    mask = offsets < n_elements
+
+    x = tl.load(x_ptr + offsets, mask=mask, other=0.0).to(tl.float32)
+
+    # inner = sqrt(2/pi) * (x + 0.044715 * x^3)
+    inner = 0.7978845608 * (x + 0.044715 * x * x * x)
+
+    # tanh(u) = 1 - 2 / (exp(2u) + 1); exp overflow to inf gives the correct limits.
+    e2u = tl.exp(2.0 * inner)
+    t = 1.0 - 2.0 / (e2u + 1.0)
+
+    y = 0.5 * x * (1.0 + t)
+
+    tl.store(out_ptr + offsets, y.to(out_ptr.dtype.element_ty), mask=mask)
+
+
+TRITON_KERNELS = [_gelu_tanh_approx_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0].contiguous()
+    n_elements = a.numel()
+    out = torch.empty_like(a)
+
+    BLOCK_SIZE = 1024
+    grid = (triton.cdiv(n_elements, BLOCK_SIZE),)
+
+    _gelu_tanh_approx_kernel[grid](
+        a,
+        out,
+        n_elements,
+        BLOCK_SIZE=BLOCK_SIZE,
+    )
+    return out

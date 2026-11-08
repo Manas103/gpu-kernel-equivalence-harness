@@ -1,0 +1,26 @@
+{
+  "task": "tanh_act",
+  "dtype": "bf16",
+  "status": "pass",
+  "max_abs_diff": 0.0019368790242345613,
+  "tolerance_eps": 0.027672829295776295,
+  "elapsed_candidate_s": 0.00013926400244235993,
+  "elapsed_eager_s": 9.251199662685394e-05,
+  "speedup_over_eager": 0.6642922435404209,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 7.5,
+    "memory_pct_of_peak": 1.5,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 28,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 18,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

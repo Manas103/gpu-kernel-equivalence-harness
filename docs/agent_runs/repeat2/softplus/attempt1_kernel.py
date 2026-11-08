@@ -1,0 +1,45 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _softplus_kernel(
+    x_ptr,
+    out_ptr,
+    n_elements,
+    BLOCK_SIZE: tl.constexpr,
+):
+    pid = tl.program_id(axis=0)
+    offs = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+    mask = offs < n_elements
+
+    x = tl.load(x_ptr + offs, mask=mask, other=0.0).to(tl.float32)
+
+    # Stable softplus: softplus(x) = max(x, 0) + log(1 + exp(-|x|)).
+    # log1p(e) is evaluated with the Kahan trick so tiny e keeps its precision:
+    #   log1p(e) = log(u) * e / (u - 1), where u = 1 + e (rounded), and
+    #   the ratio is replaced by e itself when u == 1 exactly.
+    ax = tl.abs(x)
+    e = tl.exp(-ax)
+    u = 1.0 + e
+    um1 = u - 1.0
+    lu = tl.log(u)
+    log1p_e = tl.where(um1 == 0.0, e, lu * e / um1)
+
+    y = tl.maximum(x, 0.0) + log1p_e
+
+    tl.store(out_ptr + offs, y.to(out_ptr.dtype.element_ty), mask=mask)
+
+
+TRITON_KERNELS = [_softplus_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    x = tensors[0].contiguous()
+    out = torch.empty_like(x)
+    n_elements = x.numel()
+    BLOCK_SIZE = 1024
+    grid = (triton.cdiv(n_elements, BLOCK_SIZE),)
+    _softplus_kernel[grid](x, out, n_elements, BLOCK_SIZE=BLOCK_SIZE)
+    return out

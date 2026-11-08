@@ -1,0 +1,30 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _row_sum_kernel(x_ptr, out_ptr, M, N, stride_m, stride_n, BLOCK_N: tl.constexpr):
+    row = tl.program_id(0)
+    acc = tl.zeros([BLOCK_N], dtype=tl.float32)
+    for start in range(0, N, BLOCK_N):
+        offs = start + tl.arange(0, BLOCK_N)
+        mask = offs < N
+        x = tl.load(x_ptr + row * stride_m + offs * stride_n, mask=mask, other=0.0)
+        acc += x.to(tl.float32)
+    total = tl.sum(acc, axis=0)
+    tl.store(out_ptr + row, total.to(out_ptr.dtype.element_ty))
+
+
+TRITON_KERNELS = [_row_sum_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0]
+    M, N = a.shape
+    out = torch.empty((M,), device=a.device, dtype=a.dtype)
+    BLOCK_N = min(triton.next_power_of_2(N), 1024)
+    _row_sum_kernel[(M,)](a, out, M, N, a.stride(0), a.stride(1), BLOCK_N=BLOCK_N, num_warps=4)
+    return out
+```

@@ -1,0 +1,26 @@
+{
+  "task": "softplus",
+  "dtype": "bf16",
+  "status": "pass",
+  "max_abs_diff": 0.01310007208219055,
+  "tolerance_eps": 0.034399331493419893,
+  "elapsed_candidate_s": 2.5599999353289605e-05,
+  "elapsed_eager_s": 6.444799900054932e-05,
+  "speedup_over_eager": 2.5175000245563575,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 41.0,
+    "memory_pct_of_peak": 8.1,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 36,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 14,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

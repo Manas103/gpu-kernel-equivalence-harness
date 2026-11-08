@@ -1,0 +1,46 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _row_sum_fp16_kernel(
+    x_ptr,
+    out_ptr,
+    n_cols,
+    stride_xm,
+    stride_xn,
+    stride_om,
+    BLOCK_N: tl.constexpr,
+):
+    row = tl.program_id(0)
+    offs = tl.arange(0, BLOCK_N)
+    acc = tl.zeros([BLOCK_N], dtype=tl.float32)
+    for start in range(0, n_cols, BLOCK_N):
+        cols = start + offs
+        mask = cols < n_cols
+        vals = tl.load(x_ptr + row * stride_xm + cols * stride_xn, mask=mask, other=0.0)
+        acc += vals.to(tl.float32)
+    total = tl.sum(acc, axis=0)
+    tl.store(out_ptr + row * stride_om, total.to(tl.float16))
+
+
+TRITON_KERNELS = [_row_sum_fp16_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    x = tensors[0]
+    n_rows, n_cols = x.shape
+    out = torch.empty((n_rows,), device=x.device, dtype=x.dtype)
+    BLOCK_N = 1024
+    grid = (n_rows,)
+    _row_sum_fp16_kernel[grid](
+        x,
+        out,
+        n_cols,
+        x.stride(0),
+        x.stride(1),
+        out.stride(0),
+        BLOCK_N=BLOCK_N,
+    )
+    return out

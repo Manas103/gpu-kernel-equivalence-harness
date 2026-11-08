@@ -1,0 +1,59 @@
+```python
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def softmax_row_kernel(
+    x_ptr,
+    out_ptr,
+    n_cols,
+    stride_row,
+    BLOCK_SIZE: tl.constexpr,
+):
+    row = tl.program_id(0)
+    offs = tl.arange(0, BLOCK_SIZE)
+    mask = offs < n_cols
+    row_start = row * stride_row
+
+    x = tl.load(x_ptr + row_start + offs, mask=mask, other=float("-inf"))
+    x = x.to(tl.float32)
+
+    row_max = tl.max(x, axis=0)
+    e = tl.exp(x - row_max)
+    e = tl.where(mask, e, 0.0)
+    denom = tl.sum(e, axis=0)
+    y = e / denom
+
+    tl.store(
+        out_ptr + row_start + offs,
+        y.to(out_ptr.dtype.element_ty),
+        mask=mask,
+    )
+
+
+TRITON_KERNELS = [softmax_row_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    x = tensors[0]
+    n_cols = x.shape[-1]
+    n_rows = x.numel() // n_cols
+
+    x2 = x.contiguous().view(n_rows, n_cols)
+    out = torch.empty((n_rows, n_cols), dtype=x.dtype, device=x.device)
+
+    block_size = triton.next_power_of_2(n_cols)
+    num_warps = 4 if block_size <= 2048 else 8
+
+    softmax_row_kernel[(n_rows,)](
+        x2,
+        out,
+        n_cols,
+        x2.stride(0),
+        BLOCK_SIZE=block_size,
+        num_warps=num_warps,
+    )
+    return out.view(x.shape)
+```

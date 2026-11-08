@@ -1,0 +1,26 @@
+{
+  "task": "gelu_tanh_approx",
+  "dtype": "fp16",
+  "status": "pass",
+  "max_abs_diff": 0.0009728550794019242,
+  "tolerance_eps": 0.003419819274016543,
+  "elapsed_candidate_s": 0.00012147200107574463,
+  "elapsed_eager_s": 7.881599664688111e-05,
+  "speedup_over_eager": 0.6488408517921336,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 8.6,
+    "memory_pct_of_peak": 1.7,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 27,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 18,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

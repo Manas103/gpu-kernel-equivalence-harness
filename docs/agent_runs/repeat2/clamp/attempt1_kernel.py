@@ -1,0 +1,28 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def clamp_kernel(x_ptr, out_ptr, n_elements, lo, hi, BLOCK: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    offs = pid * BLOCK + tl.arange(0, BLOCK)
+    mask = offs < n_elements
+    x = tl.load(x_ptr + offs, mask=mask, other=0.0).to(tl.float32)
+    y = tl.minimum(tl.maximum(x, lo), hi)
+    tl.store(out_ptr + offs, y.to(tl.float16), mask=mask)
+
+
+TRITON_KERNELS = [clamp_kernel]
+
+
+def run(*tensors: torch.Tensor) -> torch.Tensor:
+    a = tensors[0]
+    if not a.is_contiguous():
+        a = a.contiguous()
+    out = torch.empty_like(a)
+    n = a.numel()
+    BLOCK = 1024
+    grid = (triton.cdiv(n, BLOCK),)
+    clamp_kernel[grid](a, out, n, -1.0, 1.0, BLOCK=BLOCK)
+    return out

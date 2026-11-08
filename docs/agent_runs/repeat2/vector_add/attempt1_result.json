@@ -1,0 +1,26 @@
+{
+  "task": "vector_add",
+  "dtype": "fp16",
+  "status": "pass",
+  "max_abs_diff": 0.00048828125,
+  "tolerance_eps": 0.0032600519601020395,
+  "elapsed_candidate_s": 2.848000079393387e-05,
+  "elapsed_eager_s": 9.286399930715562e-05,
+  "speedup_over_eager": 3.260674042078513,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 55.2,
+    "memory_pct_of_peak": 11.0,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 18,
+      "shared_bytes": 0,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 28,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 1000000000,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}

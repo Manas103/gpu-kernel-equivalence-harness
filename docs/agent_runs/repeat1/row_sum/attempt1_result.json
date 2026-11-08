@@ -1,0 +1,26 @@
+{
+  "task": "row_sum",
+  "dtype": "fp16",
+  "status": "pass",
+  "max_abs_diff": 0.015110015869140625,
+  "tolerance_eps": 32.3122344436124,
+  "elapsed_candidate_s": 2.8672000393271447e-05,
+  "elapsed_eager_s": 3.574400022625923e-05,
+  "speedup_over_eager": 1.246651776506232,
+  "speed_of_light_proxy": {
+    "achieved_gbps": 36.6,
+    "memory_pct_of_peak": 7.3,
+    "compute_pct_of_peak": null
+  },
+  "occupancy_proxy": [
+    {
+      "n_regs": 40,
+      "shared_bytes": 16,
+      "num_warps": 4,
+      "blocks_limited_by_registers": 12,
+      "blocks_limited_by_threads": 12,
+      "blocks_limited_by_shared_mem": 6400,
+      "theoretical_occupancy_pct": 100.0
+    }
+  ]
+}
