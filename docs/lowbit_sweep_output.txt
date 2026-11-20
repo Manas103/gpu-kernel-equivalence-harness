@@ -1,0 +1,16 @@
+GPU: NVIDIA GeForce RTX 4070 SUPER
+torch: 2.11.0+cu128, CUDA: 12.8
+group_size: 32
+sweep grid: 80 shapes x 3 dtypes x 10 repeats = 2400 runs
+
+total runs: 2400
+elapsed: 16.4s
+false failures (verdict or output changed on an identical repeat): 0
+divergent (shape, dtype) configurations: 0
+
+
+adversarial probe (cancellation-structured data, not part of the sweep above):
+adversarial divergences found: 0
+
+=== claim: 9 divergences the FP16 and BF16 arms never reached ===
+measured: 0 total low-bit divergences (0 in the main sweep, 0 adversarial)

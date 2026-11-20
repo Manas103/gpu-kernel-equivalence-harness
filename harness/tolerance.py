@@ -47,6 +47,52 @@ def tolerance_budget(k: int, dtype_kind: str, safety: float = SAFETY) -> tuple[f
     return bound, bound
 
 
+# Sub-8-bit extension: the budget below is a function of the quantization
+# step, not of K. At fp16/bf16/tf32 (above), the dominant source of
+# kernel-vs-oracle disagreement is reduction order, so the budget scales
+# with K-1 the way the textbook bound does. At FP8/INT4, the operands
+# themselves are coarsely quantized before the GEMM ever runs, and the
+# oracle dequantizes the SAME quantized values the kernel does (so the
+# quantization error itself is common to both sides and is not what this
+# budget is defending against; see quant.py and harness/lowbit_sweep.py
+# for why). What the K-scaled formula would get wrong here is its growth
+# with K: a reduction-order bound that keeps widening as K grows forgives
+# real accumulation divergences at large K that a K-independent,
+# quantization-step-sized budget does not. QUANT_SAFETY plays the same
+# role SAFETY plays above (an engineering margin on top of a worst-case
+# per-group estimate, not a number chosen to make a target divergence
+# count come out right).
+
+QUANT_SAFETY = 4.0
+
+
+def quant_tolerance_budget(quant_step, safety: float = QUANT_SAFETY):
+    """quant_step: the per-group worst-case quantization step (a tensor or
+    scalar; see quant.fp8_quant_step / quant.int4_quant_step). Returns a
+    scalar-or-tensor bound usable directly as atol in a comparison against
+    the dequantize-then-fp64-matmul oracle. Deliberately NOT a function of
+    K: see the module docstring just above for why."""
+    return safety * quant_step
+
+
+def within_quant_budget(actual, expected, quant_step, safety: float = QUANT_SAFETY):
+    """Like within_budget, but for the quantization-step-derived budget.
+    quant_step is per-(row, group) for A and per-(group, col) for B; the
+    bound used here is a single scalar atol, the max over the sweep's own
+    quant_step tensor, so the comparison does not have to carry a
+    per-output-element budget shape through the GEMM (the dot product
+    mixes groups together, so a single conservative scalar is the honest
+    choice, not a per-element one). Returns (passed, max_abs_diff, atol)."""
+    import torch
+
+    budget = quant_tolerance_budget(quant_step, safety)
+    atol = float(budget.max().item()) if hasattr(budget, "max") else float(budget)
+    diff = (actual - expected).abs()
+    max_abs_diff = diff.max().item()
+    passed = bool(torch.all(diff <= atol).item())
+    return passed, max_abs_diff, atol
+
+
 def within_budget(actual, expected, k: int, dtype_kind: str, safety: float = SAFETY):
     """actual, expected: torch.Tensor (same shape, float32). Returns
     (passed, max_abs_diff, max_rel_diff, rtol, atol)."""

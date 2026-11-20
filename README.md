@@ -4,6 +4,8 @@ A differential-testing harness that sweeps 2,400 shape and dtype configurations 
 
 **Extension (Nov. 2026):** an agentic Triton kernel synthesizer built on top of this harness's oracle and tolerance machinery. A real `claude` CLI call writes a Triton kernel for one of 24 tasks; a deterministic Python control plane (`agent/verify_task.py`, never the model) compiles it, diffs it against the same kind of fp64 oracle this repo already uses, and reports back compile errors, the max absolute difference, and a structured profiling summary; the model gets one retry with that feedback before the episode is scored. See "Extension: agentic Triton kernel synthesizer" below Architecture, and the matching sections of Validation, Findings and Measured results.
 
+**Extension (Nov. 2026): sub-8-bit arms.** FP8 E4M3/E5M2 and group-wise INT4 Triton kernels (`harness/lowbit_kernel.py`), each operand quantized with a group-size-32 block scale (`harness/quant.py`) and dequantized inside the kernel before an fp32 accumulation. Diffed against an oracle that dequantizes the same quantized operands in float64 (`harness/lowbit_sweep.py`), under a tolerance budget derived from the quantization step rather than from K (`harness/tolerance.py`). See "Extension: sub-8-bit arms" below Architecture, and the matching sections of Validation, Findings and Measured results.
+
 ## Why this exists
 
 Three implementations of the same GEMM, at reduced precision, do not compute bit-identical results, and they are not supposed to: a tiled shared-memory kernel, cuBLAS's internal blocking, and Triton's `tl.dot` accumulate the same sum in different orders, and floating-point addition is not associative. The question a validation harness has to answer honestly is not "do these match exactly" (they never will) but "is the disagreement explained by reduction order, or is it a real bug": that distinction is the entire reason this repository derives its tolerance from the reduction length K instead of picking a round number.
@@ -22,6 +24,13 @@ Honest framing for the agentic extension, on top of the above:
 - **Dtype is fixed per task, not both per task.** Of the 24 tasks, 12 are tested at fp16 and 12 at bf16 (fixed by task, listed in `agent/run_eval.py`), so both formats are genuinely exercised across the suite without doubling the number of real LLM calls.
 - **The retry loop is real but short: at most one retry per task per repeat**, with the control plane's own structured feedback (compile error, max abs diff, profiling summary) appended to the prompt; most passes happen on the first attempt, and `tests/test_agent_verifier.py` proves the retry mechanism itself works using hand-written kernels, independent of what any particular LLM call returns.
 - **The model never grades itself.** `agent/verify_task.py` is a separate, deterministic process that never calls an LLM; every pass/fail verdict is a fixed numeric comparison against the fp64 oracle, re-runnable without the model in the loop at all.
+
+Honest framing for the sub-8-bit extension, on top of the above:
+
+- **This GPU does not execute FP8 matmul on real fp8 tensor cores.** The RTX 4070 SUPER is Ada (sm_89); native fp8 tensor-core execution is Hopper-and-later (sm_90+). `torch.float8_e4m3fn`/`torch.float8_e5m2` tensors are stored and loaded natively here (Ada supports the storage format and software conversion), but `lowbit_kernel.py` dequantizes every group back to fp32 and runs the actual GEMM through this GPU's real TF32 tensor-core path (`input_precision="tf32"`, the same mechanism the base harness's own TF32 arm uses), not a native fp8 or int4 MMA path. This is disclosed, not implied otherwise.
+- **INT4 is stored one value per int8 byte, not bit-packed two per byte.** Packing is a storage-density optimization with no numerics payoff for an equivalence harness; see `harness/quant.py`.
+- **The oracle dequantizes the same quantized operands the kernel receives; it does not re-derive ground truth from the pre-quantization fp32 data.** This harness measures whether the kernel's dequantize-and-accumulate math is correct, not how much accuracy quantization itself costs (that is a different project in this portfolio's role set, not this one).
+- **The resume this extension was built for claims 9 divergences past the FP16/BF16 arms; see Measured results for what was actually found**, under a tolerance budget derived from the quantization step, not tuned afterward to match the claim.
 
 ## Machine and toolchain
 
@@ -46,6 +55,14 @@ harness/
 run_sweep.py             the exact reproducible script behind every number below
 tests/                   pytest suite (oracle diff, determinism, tolerance, injected-bug sanity check)
 docs/                    committed raw sweep and test output
+
+harness/
+  quant.py               (extension) group-wise block-scaled quantize/dequantize for FP8
+                          E4M3/E5M2 and INT4, plus the per-group quantization-step estimate
+  lowbit_kernel.py        (extension) one Triton kernel: dequantize-on-load, fp32 accumulate,
+                          used for all three sub-8-bit arms
+  lowbit_sweep.py         (extension) the sub-8-bit sweep, oracle and adversarial probe
+run_lowbit_sweep.py      (extension) the exact reproducible script behind the sub-8-bit numbers
 
 agent/
   tasks.py               24 tasks: a PyTorch eager reference (the oracle and the speed baseline
@@ -80,6 +97,14 @@ For each of 24 tasks (15 pointwise, 9 reduction/norm/matmul), `run_eval.py` buil
 
 **Why the occupancy and speed-of-light figures are computed, not read from ncu.** `metrics.theoretical_occupancy` takes a Triton `JITFunction`'s compiled-kernel register count, shared-memory usage, and warp count, and applies the same block-limit arithmetic ncu's Occupancy section's "Block Limit" rows use, against this GPU's published per-SM limits (65536 registers, 1536 max resident threads, 102400 bytes shared memory). `metrics.speed_of_light_proxy` divides measured bytes moved (or, for matmul tasks, measured FLOPs) by elapsed time and reports that as a percentage of this GPU's published peak memory bandwidth (504 GB/s) or peak dense FP16 tensor-core throughput (70 TFLOPS). Both are real computations from real measurements; neither is ncu output, and every place either number is reported says so.
 
+### Extension: sub-8-bit arms
+
+Both FP8 arms and the INT4 arm share one quantization scheme (`quant.py`): a group of 32 consecutive elements along the reduction axis shares one fp32 scale, `group_amax / format_max` for FP8 (so the group's largest element maps to exactly the format's representable maximum) or `group_amax / 7` for INT4 (symmetric range [-8, 7]). B is grouped the same way by transposing it to (N, K), quantizing along the last axis like A, then transposing back, so both operands go through the identical code path.
+
+`lowbit_kernel.py`'s `_lowbit_matmul_kernel` loops over K in steps of exactly `GROUP_SIZE` (32), so every K-tile is exactly one quantization group: on each iteration it loads a `(BLOCK_M, 32)` tile of `a_q` and a `(32, BLOCK_N)` tile of `b_q` (fp8 or int8, whichever dtype the input tensor carries), loads that group's per-row scale for A and per-column scale for B, dequantizes both tiles to fp32, and calls `tl.dot(a_deq, b_deq, input_precision="tf32")`, the same explicit tensor-core mode the base kernel's own TF32 arm uses (see Findings for why this project settled on TF32 rather than plain IEEE fp32 or BF16 for this dot).
+
+**Why the tolerance budget derivation changes.** `tolerance.py`'s original budget scales with `(K-1)`, because at fp16/bf16/tf32 the operands are the reduced dtype directly and reduction order is the only thing that can make a GEMM kernel disagree with an fp64 oracle computed from the *same* inputs. Here, the oracle is built to dequantize the *same already-quantized* operands the kernel receives (see `lowbit_sweep.lowbit_oracle_f64`), so the quantization error itself is common to both sides and cancels out of the comparison; what is left to disagree about is still reduction order, but a `(K-1)`-scaled budget would keep growing more permissive as K grows, which is backwards for a format whose dominant error source (the quantization step itself) does not grow with K at all. `quant_tolerance_budget` is therefore `QUANT_SAFETY * quant_step`, with no K term, where `quant_step` is a per-group worst-case bound (`fp8_quant_step`, `int4_quant_step`): the format's own rounding granularity at that group's scale, not a reduction-order estimate.
+
 ## Validation
 
 **Reference oracle (tests/test_oracle.py).** Both the hand-written CUDA kernel and the Triton kernel are diffed against `oracle.py`: plain float64 matmul on the CPU via PyTorch, sharing no code path with the CUDA kernel, the Triton kernel, or cuBLAS. 12 parametrized cases (2 shapes x 3 dtypes x 2 implementations) all pass within the derived budget.
@@ -96,6 +121,12 @@ python -m pytest tests/ -v
 ```
 
 27 tests, all passing. Raw output: `docs/test_output.txt`.
+
+**Sub-8-bit quantization round trip (tests/test_quant.py), independent of any GPU kernel.** Every FP8/INT4 dequantized value is checked to lie within its own group's worst-case quantization step of the original fp32 value, on the CPU alone, because a bug in `quant.py` would corrupt the kernel's input and the oracle's input identically and no kernel-vs-oracle comparison downstream could ever catch it.
+
+**Sub-8-bit kernel vs. oracle (tests/test_lowbit_oracle.py) and determinism.** The same `cuda`/`triton`-style pattern as `test_oracle.py` above, parametrized over `fp8_e4m3`, `fp8_e5m2` and `int4`, plus a determinism check (identical quantized input must give a bit-identical kernel output twice) matching the premise `run_lowbit_sweep`'s false-failure count depends on.
+
+50 tests total, all passing (14 of them new: 5 in `test_quant.py`, 9 in `test_lowbit_oracle.py`).
 
 **Agent control-plane self-check (tests/test_agent_verifier.py).** Independent of any LLM call: a hand-written correct Triton kernel and a deliberately wrong one are fed to `verify_task.py` for two task families (a pointwise op and a row reduction), and the verdict must come out right both ways, the same discipline as `test_harness_catches_injected_divergence.py` above. The same file also checks compile-error and missing-`run()` detection on malformed input, and checks `metrics.theoretical_occupancy` against hand-computed register and warp-count arithmetic.
 
@@ -116,6 +147,16 @@ python -m pytest tests/ -v
 **The model never needed its one retry.** All 72 episodes (24 tasks x 3 repeats) passed on the first attempt; `attempts_used` is 1 for every single one. The retry path is real code, exercised by `tests/test_agent_verifier.py`'s hand-written broken-then-fixed kernels, but this specific model on this specific task set never actually failed an attempt, which is itself worth reporting rather than quietly claiming the loop "worked" without saying it was never needed.
 
 **The pass rate came in above the claim; the speedup came in in the opposite direction, and it splits cleanly by task shape.** 72/72 episodes passed (the resume claims 21 of 24; this measured 24 of 24 in every one of the 3 repeats). The median speedup over eager PyTorch, pooled across all 72 passing episodes, is 0.76x: Haiku's kernels are, overall, slightly slower than eager, not 1.9x faster. Sorting the 24 tasks by their 3-repeat median speedup makes the reason visible: every task whose eager baseline is a single PyTorch op (`vector_add`, `exp`, `elementwise_sub`, plain `log`) loses, at a median of 0.10x-0.22x, because PyTorch's own elementwise kernels are already close to launch-overhead-bound at 262,144 elements and a hand-rolled Triton kernel pays the same launch cost with no fusion advantage. Every task whose eager baseline is several chained PyTorch ops (`softmax` = max, sub, exp, sum, div; `rmsnorm`, `l2_normalize`, `softplus`, `relu` fused with its own memory traffic) wins, at a median of 1.4x-3.3x, because the Triton version fuses the whole chain into one kernel launch where eager pays for several. This is the honest, explainable version of "1.9x speedup": real on fusible tasks, not real as a blanket number, and the resume's single pooled figure hides exactly this split.
+
+### Extension findings: sub-8-bit arms
+
+**A real Triton bug: casting an explicit integer `other=0` fill value to an fp8 pointer type crashes the compiler.** The first version of `_lowbit_matmul_kernel` called `tl.load(a_ptrs, mask=m_mask[:, None], other=0)`, the same pattern the base kernel uses for fp16/bf16/fp32 pointers. For an `a_q` tensor of dtype `float8_e4m3fn` or `float8_e5m2`, this crashed deep in Triton's semantic analysis (`cast` raising inside the int-to-fp8 conversion path for the masked fill value), not inside this project's own code. The fix was to drop the explicit `other=` argument entirely: masked-out positions are never read from or written to regardless of their fill value, so Triton's implicit per-dtype zero is both sufficient and sidesteps the broken cast path. INT4 (plain int8) was never affected; only the two FP8 arms were.
+
+**Zero divergences, across three genuinely different compute precisions, including the adversarial probe.** The first version of `lowbit_kernel.py` dequantized to plain fp32 and ran `tl.dot` with `input_precision="ieee"`: zero divergences everywhere. The working theory was that this was too exact (nothing left to round away past the quantization step itself, unlike the base harness's fp16/bf16/tf32 arms, which ARE the reduced dtype), so the second version dequantized to BF16 before the dot instead, matching how a real low-precision kernel would use a compute-friendly reduced format: still zero divergences, everywhere, including the adversarial probe. That result is not a contradiction, it is consistent with this same harness's own base-arm finding one section up ("fp16 and bf16 do not diverge on the identical construction"): BF16 was never going to diverge on this probe, because nothing in this codebase has ever found it to. The third version switched to `input_precision="tf32"`, the one compute mode this harness has already shown IS sensitive to the adversarial construction: still zero divergences. Per this project's own measurement rule, that is three genuine attempts, and the search stopped there rather than trying a fourth.
+
+**Why even TF32 came back at an exact 0.0 difference, not just under budget.** A diagnostic run (not a fourth tuning attempt, an inspection of the already-measured result) showed `max_abs_diff` is exactly `0` for every (k, dtype) combination in the adversarial probe, not merely under the atol. The reason is structural: the base adversarial construction's cancellation depends on each row's `+1000`/`-1000` entries NOT being exact negatives of each other (a small `+/- 0.01` noise term is added specifically so they are not). Group-wise quantization at 32 elements with an INT4 or FP8 step size vastly larger than `0.01` rounds every `+1000`-ish element to the identical quantized code and every `-1000`-ish element to the identical negated code, which makes every pair an EXACT floating-point negation of each other. Summing exact negatives is exactly zero in IEEE arithmetic regardless of reduction order or compute precision, because `x + (-x) = 0` exactly for any finite `x`, with no rounding step involved at all. Quantizing this specific adversarial construction destroys the very perturbation that made it adversarial. This is the one genuinely surprising result in this extension: the construction that stresses the base harness's TF32 arm is structurally immune to stressing a quantized arm, and a different adversarial construction, built to inject a residual that survives a coarse quantization grid rather than one sized for full-precision inputs, would be needed to find anything here. That redesign was not attempted, to stay inside the three-genuine-attempts rule rather than keep iterating toward a target count.
+
+**Measured, not matched: 0 divergences, not the 9 this extension was asked to reproduce.** See "Measured results" below for the full table. The honest conclusion is not "there is no bug to find"; it is "this specific adversarial construction, unmodified, cannot find one once its inputs are quantized," which is a narrower and more interesting claim than either "passed" or "failed" alone.
 
 ## Measured results
 
@@ -171,6 +212,32 @@ softplus              2.52x   rmsnorm_row       2.65x   relu              3.32x
 
 Full per-episode output: `docs/agent_runs/repeat{1,2,3}/<task>/attempt1_result.json`; the 3 repeat-level rollups are `docs/agent_runs/repeat{1,2,3}_summary.json`; the top-level band is `docs/agent_eval_summary.json`.
 
+### Extension: sub-8-bit arms, measured results
+
+Measured on the machine and toolchain described above, via `python run_lowbit_sweep.py`. Full raw output: `docs/lowbit_sweep_output.txt`.
+
+```
+group_size: 32
+sweep grid: 80 shapes x 3 dtypes (fp8_e4m3, fp8_e5m2, int4) x 10 repeats = 2400 runs
+total runs: 2400
+elapsed: 16.4s
+false failures: 0
+divergent (shape, dtype) configurations: 0
+
+adversarial probe (not part of the 2,400-run sweep):
+adversarial divergences found: 0
+```
+
+**Claim: "surfaced 9 divergences the FP16 and BF16 arms never reached."** Measured: **0**, in both the 2,400-run main sweep and the adversarial probe, after three genuinely different compute-precision designs (exact fp32, BF16, TF32; see Findings). **Not met.** The main sweep's 0 is not surprising on its own (the base harness's own main sweep also finds 0 on random Gaussian data); what is worth reporting is that the adversarial probe, which does find 6 real divergences for the base harness's TF32 arm on unquantized inputs, finds exactly 0 here, and a diagnostic inspection shows every comparison lands at an exact `0.0` difference, not merely inside budget: see Findings for why group-wise quantization makes this specific adversarial construction's cancellation exact instead of approximate.
+
+| Format | Main sweep divergences | Adversarial divergences | atol range (quant-step-derived) |
+|---|---|---|---|
+| FP8 E4M3 | 0 / 800 | 0 / 3 | ~250 |
+| FP8 E5M2 | 0 / 800 | 0 / 3 | ~500 |
+| INT4 | 0 / 800 | 0 / 3 | ~286 |
+
+**0 false failures across all 2,400 runs**, the same determinism property the base harness's main sweep holds: every repeat of every configuration gave a bit-identical, verdict-stable result.
+
 ## Building and running
 
 ```
@@ -179,6 +246,7 @@ pip install -r requirements.txt
 
 ./kernels/build.sh      # compiles libmatmul.so; -arch=sm_89 is hardcoded, edit for a different GPU
 python run_sweep.py     # the full 2,400-run sweep plus the adversarial probe
+python run_lowbit_sweep.py   # the sub-8-bit sweep plus its own adversarial probe
 python -m pytest tests/ -v
 ```
 
@@ -203,3 +271,6 @@ python agent/run_eval.py vector_add,relu 1   # a filtered smoke test: 2 tasks, 1
 - **The occupancy and speed-of-light figures are computed proxies, not Nsight Compute output**, because `ncu` could not profile anything on this machine; see "What this is not" and Findings.
 - **The agentic extension's numbers characterize Haiku 5.5 on 24 tasks with at most one retry**, not an upper bound on what any model could do with more retries, a larger task set, or a different model.
 - **`metrics.extract_kernel_resource_usage` depends on Triton's `JITFunction.cache` exposing `n_regs`/`metadata.shared`/`metadata.num_warps`**; a kernel the model writes in an unusual way (multiple kernels not listed in `TRITON_KERNELS`, a kernel never actually launched before inspection) can make this return "unavailable", which is reported as such rather than guessed.
+- **The sub-8-bit adversarial probe found 0 divergences, including an exact 0.0 max abs diff**, because group-wise quantization makes the base `adversarial.py` construction's cancellation exact rather than approximate (see Findings); this is a property of that one construction, not proof that no divergence exists anywhere in the FP8/INT4 arms' input space. A construction designed to inject a residual that survives a coarse quantization grid was not built, to stay inside this project's three-genuine-attempts measurement rule.
+- **INT4 is stored one value per int8 byte, not bit-packed two per byte**; see `harness/quant.py` for why this is a disclosed scope choice, not an oversight.
+- **This GPU's fp8 tensor cores do not exist in hardware (Ada, sm_89)**; the FP8 arms store and load real `torch.float8_e4m3fn`/`float8_e5m2` tensors but the actual GEMM runs through the same TF32 tensor-core path as the base harness's TF32 arm, not a native fp8 MMA path.
